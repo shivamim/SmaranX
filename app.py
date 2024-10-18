@@ -3,13 +3,13 @@ import streamlit as st
 from dotenv import load_dotenv
 import google.generativeai as gen_ai
 
-# Load environment variables from .env file for local development (optional)
+# Load environment variables (if needed)
 load_dotenv()
 
 # Configure Streamlit page settings
 st.set_page_config(
     page_title="Chat with SmaranX!",
-    page_icon=":brain:",  # Favicon emoji
+    page_icon="🤖",  # Favicon emoji
     layout="centered",  # Page layout option
 )
 
@@ -22,49 +22,87 @@ model = gen_ai.GenerativeModel('gemini-pro')
 
 # Function to translate roles between Gemini-Pro and Streamlit terminology
 def translate_role_for_streamlit(user_role):
-    return "assistant" if user_role == "model" else user_role
+    if user_role == "model":
+        return "assistant"
+    else:
+        return user_role
 
 # Initialize chat session in Streamlit if not already present
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])
 
 # CSS for styling
-st.markdown("""
+st.markdown(
+    """
     <style>
     body {
-        background-image: url('https://drive.google.com/file/d/1vt_1p0QZk3AyrKZtGXeKIn8NINwovsvH/view?usp=sharing');  /* Replace with your image URL */
-        background-size: cover;
-        background-repeat: no-repeat;
-        color: white;  /* Text color */
-        font-family: 'Arial', sans-serif;
+        background-color: #f0f0f0;  /* Light grey background */
+        font-family: 'Arial', sans-serif;  /* Font style */
+        color: #333;  /* Text color */
     }
     .chat-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         padding: 20px;
-        border-radius: 10px;
-        background-color: rgba(0, 0, 0, 0.7);  /* Semi-transparent background */
     }
-    h1 {
-        text-align: center;
-        margin-bottom: 20px;
-        font-size: 2.5em;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-    }
-    .st-chat-message {
-        margin-bottom: 10px;
-        border-radius: 5px;
+    .chat-message {
+        border-radius: 15px;
         padding: 10px;
+        margin: 5px 0;
+        max-width: 60%;
+        transition: background-color 0.3s;
+    }
+    .user {
+        background-color: #0084ff;  /* Blue for user messages */
+        color: white;
+        align-self: flex-end;
+    }
+    .assistant {
+        background-color: #e0e0e0;  /* Light grey for assistant messages */
+        color: black;
+        align-self: flex-start;
+    }
+    .stTitle {
+        text-align: center;
+        font-size: 32px;
+        margin: 20px 0;
+        color: #0084ff;  /* Blue color for title */
     }
     </style>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
+
+# JavaScript for added interactivity
+st.markdown(
+    """
+    <script>
+    // Function to scroll to the bottom of the chat
+    function scrollToBottom() {
+        const chatContainer = document.querySelector('.chat-container');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Scroll to bottom after a message is sent
+    window.addEventListener('load', function() {
+        scrollToBottom();
+    });
+    </script>
+    """,
+    unsafe_allow_html=True
+)
+
+# Chat container to allow scrolling
+st.markdown('<div class="chat-container">', unsafe_allow_html=True)
 
 # Display the chatbot's title on the page
 st.title("🤖 SmaranX - ChatBot")
 
-# Chat container for messages
-with st.container():
-    for message in st.session_state.chat_session.history:
-        with st.chat_message(translate_role_for_streamlit(message.role)):
-            st.markdown(message.parts[0].text)
+# Display the chat history
+for message in st.session_state.chat_session.history:
+    with st.chat_message(translate_role_for_streamlit(message.role)):
+        st.markdown(message.parts[0].text)
 
 # Input field for user's message
 user_prompt = st.chat_input("Ask SmaranX...")
@@ -72,9 +110,17 @@ if user_prompt:
     # Add user's message to chat and display it
     st.chat_message("user").markdown(user_prompt)
 
-    # Send user's message to Gemini-Pro and get the response
-    gemini_response = st.session_state.chat_session.send_message(user_prompt)
+    # Check if the user asked "Who are you?"
+    if "who are you" in user_prompt.lower():
+        response = "Hello, I am SmaranX."
+    else:
+        # Send user's message to Gemini-Pro and get the response
+        gemini_response = st.session_state.chat_session.send_message(user_prompt)
+        response = gemini_response.text
 
-    # Display Gemini-Pro's response
+    # Display the response
     with st.chat_message("assistant"):
-        st.markdown(gemini_response.text)
+        st.markdown(response)
+
+# Close the chat container
+st.markdown('</div>', unsafe_allow_html=True)
