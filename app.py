@@ -31,12 +31,18 @@ def translate_role_for_streamlit(user_role):
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])
 
-# CSS for styling
+# CSS for styling with background image
 st.markdown(
     """
     <style>
     body {
-        background-color: #f0f0f0;  /* Light grey background */
+        background-image: url('https://drive.google.com/uc?id=1vt_1p0QZk3AyrKZtGXeKIn8NINwovsvH');  /* Background image */
+        background-size: contain;  /* Adjust size to contain */
+        background-position: center;  /* Center the background image */
+        background-repeat: no-repeat;  /* Do not repeat the background image */
+        height: 100vh;  /* Full viewport height */
+        width: 100vw;  /* Full viewport width */
+        overflow: hidden;  /* Prevent scrolling */
         font-family: 'Arial', sans-serif;  /* Font style */
         color: #333;  /* Text color */
     }
@@ -45,6 +51,7 @@ st.markdown(
         flex-direction: column;
         align-items: center;
         padding: 20px;
+        backdrop-filter: blur(5px);  /* Optional: Adds a blur effect behind the chat container */
     }
     .chat-message {
         border-radius: 15px;
